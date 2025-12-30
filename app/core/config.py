@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     VERSION: str
     DEBUG: bool
     SQLITE_URL: str
-    POSTGRES_URL: str
+    POSTGRES_URL_ASYNC: str
     SECRET_KEY: str
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
