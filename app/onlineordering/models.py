@@ -51,7 +51,7 @@ class Location(SQLModel, table=True):
     menu_fk: int | None = Field(default=None, foreign_key="menu.id")
 
     menu: "Menu" = Relationship(back_populates="locations")
-    user: "OoUserModel" = Relationship(back_populates="locations")
+    # user: "OoUserModel" = Relationship(back_populates="locations")
 
 
 

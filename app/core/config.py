@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     VERSION: str
     DEBUG: bool
     SQLITE_URL: str
+    POSTGRES_URL: str
     POSTGRES_URL_ASYNC: str
     SECRET_KEY: str
     ALGORITHM: str
@@ -13,7 +14,7 @@ class Settings(BaseSettings):
 
     @property
     def DATABASE_URL(self) -> str:
-        return self.SQLITE_URL if self.DEBUG else self.POSTGRES_URL
+        return self.SQLITE_URL if self.DEBUG else self.POSTGRES_URL_ASYNC
 
     model_config = SettingsConfigDict(env_file=".env")
 

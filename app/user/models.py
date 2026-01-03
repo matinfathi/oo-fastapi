@@ -18,10 +18,12 @@ class OoUserModel(SQLModel, table=True):
 
     name: str | None = None
     last_name: str | None = None
-    username: str
+    username: str = Field(index=True, unique=True)
     phone_number: str | None = None
-    email: str
+    email: str = Field(index=True, unique=True)
+    hashed_password: str
+    image: str | None = None
 
-    role: Role = Field(sa_column=Column(sqlEnum(Role, "role_enum")))
+    role: Role = Field(sa_column=Column(sqlEnum(Role, name="role_enum")))
 
-    locations: list["Location"] = Relationship(back_populates="user")
+    # locations: list["Location"] = Relationship(back_populates="user")

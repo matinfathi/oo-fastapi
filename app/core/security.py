@@ -1,16 +1,17 @@
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
+from sqlmodel.ext.asyncio.session import AsyncSession
 from fastapi import Depends, APIRouter, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
-from sqlmodel import Session, select
+from sqlmodel import select
 from pydantic import BaseModel
 import jwt
 
-from app.user.models import User
-from app.core.database import engine
+from app.user.models import OoUserModel as User
+from app.core.database_async import get_session
 from app.core.config import settings
 
 
@@ -38,18 +39,17 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def get_user(username: str):
-    with Session(engine) as session:
-        db_user = session.exec(select(User).where(User.username == username)).first()
-        print(db_user)
-        if db_user:
-            return db_user
-        else:
-            return None
+async def get_user(username: str, session: AsyncSession):
+    db_user = await session.exec(select(User).where(User.username == username))
+    # print(db_user.first())
+    if db_user:
+        return db_user.first()
+    else:
+        return None
 
 
-def authenticate_user(username: str, password: str):
-    user = get_user(username)
+async def authenticate_user(session: AsyncSession, username: str, password: str):
+    user = await get_user(username, session)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -68,7 +68,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+async def get_current_user(session: Annotated[AsyncSession, Depends(get_session)], token: Annotated[str, Depends(oauth2_scheme)]):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -82,7 +82,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         token_data = TokenData(username=username)
     except InvalidTokenError:
         raise credentials_exception
-    user = get_user(username=token_data.username)
+    user = await get_user(username=token_data.username, session=session)
     if user is None:
         raise credentials_exception
     return user
@@ -90,9 +90,10 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
 
 @core_router.post("/token")
 async def login_for_access_token(
+    session: Annotated[AsyncSession, Depends(get_session)],
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> Token:
-    user = authenticate_user(form_data.username, form_data.password)
+    user = await authenticate_user(session, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
