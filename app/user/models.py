@@ -1,10 +1,8 @@
 from enum import Enum
-from typing import TYPE_CHECKING
 
 from sqlmodel import SQLModel, Field, Relationship, Column, Enum as sqlEnum
 
-if TYPE_CHECKING:
-    from app.onlineordering.models import Location
+from app.onlineordering.models import Location
 
 
 class Role(str, Enum):
@@ -26,4 +24,4 @@ class OoUserModel(SQLModel, table=True):
 
     role: Role = Field(sa_column=Column(sqlEnum(Role, name="role_enum")))
 
-    # locations: list["Location"] = Relationship(back_populates="user")
+    locations: list[Location] = Relationship(back_populates="user")

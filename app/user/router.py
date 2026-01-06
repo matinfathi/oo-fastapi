@@ -20,8 +20,10 @@ async def list_users(
     current_user: Annotated[UserRead, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(get_session)],
     service: Annotated[UserServices, Depends(get_user_service)],
+    offset: int = 0,
+    limit: Annotated[int, Query(le=100)] = 10,
 ) -> list[UserRead]:
-    return await service.list_users(current_user=current_user, session=session)
+    return await service.list_users(current_user=current_user, session=session, offset=offset, limit=limit)
 
 
 @user_router.get("/get", tags=["Users"])

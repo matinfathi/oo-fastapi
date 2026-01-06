@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from sqlmodel import select
 
+from fastapi.middleware.gzip import GZipMiddleware
+
 from app.user.router import user_router
 from app.user.models import Role, OoUserModel as User
 from app.core.config import settings
@@ -22,7 +24,7 @@ async def lifespan(app: FastAPI):
             admin = User(
                 username="admin",
                 email="admin@example.com",
-                hashed_password=get_password_hash("admin123"),
+                hashed_password=get_password_hash("admin"),
                 role=Role.SuperAdmin,
             )
             session.add(admin)
@@ -36,6 +38,8 @@ app = FastAPI(
     version=settings.VERSION,
     lifespan=lifespan,
 )
+
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 app.include_router(user_router, prefix="/users", tags=["Users"])
 app.include_router(core_router, prefix="", tags=["Security"])

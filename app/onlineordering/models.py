@@ -47,11 +47,11 @@ class Location(SQLModel, table=True):
     working_hours: str | None = None
     is_active: bool = True
 
-    user_fk: int | None = Field(foreign_key="user.id")
+    user_fk: int | None = Field(foreign_key="oousermodel.id")
     menu_fk: int | None = Field(default=None, foreign_key="menu.id")
 
     menu: "Menu" = Relationship(back_populates="locations")
-    # user: "OoUserModel" = Relationship(back_populates="locations")
+    user: "OoUserModel" = Relationship(back_populates="locations")
 
 
 
